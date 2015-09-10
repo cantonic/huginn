@@ -9,7 +9,7 @@ module Agents
     end
 
     description <<-MD
-      The ShellCommandAgent can execute commands on your local system, returning the output.
+      The Shell Command Agent will execute commands on your local system, returning the output.
 
       `command` specifies the command to be executed, and `path` will tell ShellCommandAgent in what directory to run this command.
 
@@ -28,13 +28,13 @@ module Agents
     event_description <<-MD
     Events look like this:
 
-      {
-        'command' => 'pwd',
-        'path' => '/home/Huginn',
-        'exit_status' => '0',
-        'errors' => '',
-        'output' => '/home/Huginn' 
-      }
+        {
+          "command": "pwd",
+          "path": "/home/Huginn",
+          "exit_status": "0",
+          "errors": "",
+          "output": "/home/Huginn"
+        }
     MD
 
     def default_options

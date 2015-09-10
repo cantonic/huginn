@@ -2,11 +2,34 @@ class @AgentEditPage
   constructor: ->
     $("#agent_source_ids").on "change", @showEventDescriptions
     @showCorrectRegionsOnStartup()
+    $("form.agent-form").on "submit", => @updateFromEditors()
+
+    $("#agent_name").each ->
+      # Select the number suffix if this is a cloned agent.
+      if matches = this.value.match(/ \(\d+\)$/)
+        this.focus()
+        if this.selectionStart?
+          this.selectionStart = matches.index
+          this.selectionEnd = this.value.length
 
     # The type selector is only available on the new agent form.
     if $("#agent_type").length
       $("#agent_type").on "change", => @handleTypeChange(false)
       @handleTypeChange(true)
+
+      # Update the dropdown to match agent description as well as agent name
+      $('#agent_type').select2
+        width: 'resolve'
+        formatResult: formatAgentForSelect
+        escapeMarkup: (m) ->
+          m
+        matcher: (term, text, opt) ->
+          description = opt.attr('title')
+          text.toUpperCase().indexOf(term.toUpperCase()) >= 0 or description.toUpperCase().indexOf(term.toUpperCase()) >= 0
+
+    else
+      @enableDryRunButton()
+      @buildAce()
 
   handleTypeChange: (firstTime) ->
     $(".event-descriptions").html("").hide()
@@ -49,6 +72,9 @@ class @AgentEditPage
           $('.oauthable-form').html(json.oauthable) if json.oauthable?
           $('.agent-options').html(json.form_options) if json.form_options?
           window.jsonEditor = setupJsonEditor()[0]
+
+        @enableDryRunButton()
+        @buildAce()
 
         window.initializeFormCompletable()
 
@@ -121,6 +147,51 @@ class @AgentEditPage
         @showEventCreation()
       else
         @hideEventCreation()
+
+  buildAce: ->
+    $(".ace-editor").each ->
+      unless $(this).data('initialized')
+        $(this).data('initialized', true)
+        $source = $($(this).data('source')).hide()
+        editor = ace.edit(this)
+        $(this).data('ace-editor', editor)
+        session = editor.getSession()
+        session.setTabSize(2)
+        session.setUseSoftTabs(true)
+        session.setUseWrapMode(false)
+        editor.setTheme("ace/theme/chrome")
+
+        setSyntax = ->
+          switch $("[name='agent[options][language]']").val()
+            when 'JavaScript' then session.setMode("ace/mode/javascript")
+            when 'CoffeeScript' then session.setMode("ace/mode/coffee")
+            else session.setMode("ace/mode/text")
+
+        $("[name='agent[options][language]']").on 'change', setSyntax
+        setSyntax()
+
+        session.setValue($source.val())
+
+  updateFromEditors: ->
+    $(".ace-editor").each ->
+      $source = $($(this).data('source'))
+      $source.val($(this).data('ace-editor').getSession().getValue())
+
+  enableDryRunButton: ->
+    $(".agent-dry-run-button").prop('disabled', false).off().on "click", @invokeDryRun
+
+  disableDryRunButton: ->
+    $(".agent-dry-run-button").prop('disabled', true)
+
+  invokeDryRun: (e) =>
+    e.preventDefault()
+    @updateFromEditors()
+    Utils.handleDryRunButton(e.target)
+
+  formatAgentForSelect = (agent) ->
+    originalOption = agent.element
+    description = agent.element[0].title
+    '<strong>' + agent.text + '</strong><br/>' + description
 
 $ ->
   Utils.registerPage(AgentEditPage, forPathsMatching: /^agents/)

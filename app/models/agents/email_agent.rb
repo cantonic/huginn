@@ -6,7 +6,7 @@ module Agents
     cannot_create_events!
 
     description <<-MD
-      The EmailAgent sends any events it receives via email immediately.
+      The Email Agent sends any events it receives via email immediately.
 
       You can specify the email's subject line by providing a `subject` option, which can contain Liquid formatting.  E.g.,
       you could provide `"Huginn email"` to set a simple subject, or `{{subject}}` to use the `subject` key from the incoming Event.
@@ -33,9 +33,9 @@ module Agents
 
     def receive(incoming_events)
       incoming_events.each do |event|
-        log "Sending digest mail to #{user.email} with event #{event.id}"
         recipients(event.payload).each do |recipient|
-          SystemMailer.delay.send_message(:to => recipient, :subject => interpolated(event)['subject'], :headline => interpolated(event)['headline'], :body => interpolated(event)['body'], :groups => [present(event.payload)])
+          log "Sending digest mail to #{recipient} with event #{event.id}"
+          SystemMailer.send_message(:to => recipient, :subject => interpolated(event)['subject'], :headline => interpolated(event)['headline'], :body => interpolated(event)['body'], :groups => [present(event.payload)]).deliver_later
         end
       end
     end

@@ -7,8 +7,9 @@ module Agents
     gem_dependency_check { defined?(Google) && defined?(Google::APIClient) }
 
     description <<-MD
+      The Google Calendar Publish Agent creates events on your Google Calendar.
+
       #{'## Include `google-api-client` in your Gemfile to use this Agent!' if dependencies_missing?}
-      The GoogleCalendarPublishAgent creates events on your google calendar.
 
       This agent relies on service accounts, rather than oauth.
 
@@ -18,7 +19,7 @@ module Agents
       2. New project -> Huginn
       3. APIs & Auth -> Enable google calendar
       4. Credentials -> Create new Client ID -> Service Account
-      5. Persist the generated private key to a path, ie: `/home/hugin/a822ccdefac89fac6330f95039c492dfa3ce6843.p12`
+      5. Persist the generated private key to a path, ie: `/home/huginn/a822ccdefac89fac6330f95039c492dfa3ce6843.p12`
       6. Grant access via google calendar UI to the service account email address for each calendar you wish to manage. For a whole google apps domain, you can [delegate authority](https://developers.google.com/+/domains/authentication/delegation)
 
 
